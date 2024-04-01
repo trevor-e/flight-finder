@@ -97,7 +97,8 @@ class FlightSearcher
         maxResults: 1500,
         sort: %w[price bestValue duration earliest],
         filterParams: {
-          include: %w[airlines airports bookingSites cabinClass flexOption layover legLength equipment price quality stops stopsPerLeg departure arrival transportation]
+          include: %w[airlines airports bookingSites cabinClass flexOption layover legLength equipment price quality stops stopsPerLeg departure arrival transportation],
+          fs: "bookingSites=airlinesOnly",
         },
         inlineAdData: "v2",
         displayMessages: "v1",
@@ -106,7 +107,7 @@ class FlightSearcher
         covidBadge: "v1",
         transportationBadges: "v1",
         savingMessage: "v1",
-        searchId: search_id
+        searchId: search_id,
       }.to_json
       req.headers['Cookie'] = cookie_header
       req.headers['Content-Type'] = "application/json"
