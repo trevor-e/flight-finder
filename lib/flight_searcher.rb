@@ -55,13 +55,15 @@ class FlightSearcher
         flex: "exact",
       }
     end
+
     poll_response = poll_until_finished(legs: legs)
     filter_data = poll_response[:filterData]
     sort_map = poll_response[:sortMap]
-    best_flights = sort_map[:bestValue].map { |index| poll_response[:results][index] }
     flight_details = poll_response[:resultDetails].to_h { |r| [r[:resultId], r] }
     flight_legs = poll_response[:legs].map { |leg| leg.to_h { |l| [l[:id], l] } }
     airlines = poll_response[:airlines]
+
+    best_flights = sort_map[:bestValue].map { |index| poll_response[:results][index] }
     flights = best_flights.map do |flight|
       details = flight_details[flight[:resultId]]
       legs = details[:legs].map.with_index { |leg, index| flight_legs[index][leg] }
@@ -78,46 +80,48 @@ class FlightSearcher
 
   def poll_until_finished(legs:)
     search_id = nil
-    search_body = {
-      passengers: ["ADT"],
-      cabinClass: "economy",
-      carryOnBags: 0,
-      refundableSearch: false,
-      legs: legs,
-      contextualSearch: false,
-      pageType: "results",
-      maxResults: 1500,
-      sort: %w[price bestValue duration earliest],
-      filterParams: {
-        include: %w[airlines airports bookingSites cabinClass flexOption layover legLength equipment price quality stops stopsPerLeg departure arrival transportation]
-      },
-      inlineAdData: "v2",
-      displayMessages: "v1",
-      priceMode: "per-person",
-      airports: "v1",
-      covidBadge: "v1",
-      transportationBadges: "v1",
-      savingMessage: "v1",
-      searchId: search_id
-    }
-    cookie_header = @cookie_jar.cookies
-                              .map { |cookie| "#{cookie.name}=#{cookie.value}" }
-                              .join('; ')
     poll_response = @conn.post("/i/api/search/v1/flights/poll") do |req|
+      cookie_header = @cookie_jar.cookies
+                                 .map { |cookie| "#{cookie.name}=#{cookie.value}" }
+                                 .join('; ')
       req.params['_pt_'] = 1
       req.params['_sid_'] = @session_id
-      req.body = search_body.to_json
+      req.body = {
+        passengers: ["ADT"],
+        cabinClass: "economy",
+        carryOnBags: 0,
+        refundableSearch: false,
+        legs: legs,
+        contextualSearch: false,
+        pageType: "results",
+        maxResults: 1500,
+        sort: %w[price bestValue duration earliest],
+        filterParams: {
+          include: %w[airlines airports bookingSites cabinClass flexOption layover legLength equipment price quality stops stopsPerLeg departure arrival transportation]
+        },
+        inlineAdData: "v2",
+        displayMessages: "v1",
+        priceMode: "per-person",
+        airports: "v1",
+        covidBadge: "v1",
+        transportationBadges: "v1",
+        savingMessage: "v1",
+        searchId: search_id
+      }.to_json
       req.headers['Cookie'] = cookie_header
       req.headers['Content-Type'] = "application/json"
       req.headers['origin'] = "https://www.kayak.com"
       req.headers['referer'] = "https://www.kayak.com/flights/BOS-NAP/#{legs[0][:date]}?a=kayak"
     end
+
     raise "Got invalid response: #{response.status}" unless poll_response.status == 200
+
     poll_response_body = JSON.parse(poll_response.body, symbolize_names: true)
     search_id = poll_response_body[:searchId]
     puts "Search ID: #{search_id} #{poll_response_body[:status]}"
+
     if poll_response_body[:status] == "complete"
-      return poll_response_body
+      poll_response_body
     else
       sleep 1
       poll_until_finished(legs: legs)
