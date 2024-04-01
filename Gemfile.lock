@@ -1,0 +1,22 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    domain_name (0.6.20240107)
+    faraday (2.7.4)
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
+    http-cookie (1.0.5)
+      domain_name (~> 0.5)
+    ruby2_keywords (0.0.5)
+
+PLATFORMS
+  arm64-darwin-21
+  arm64-darwin-22
+
+DEPENDENCIES
+  faraday
+  http-cookie
+
+BUNDLED WITH
+   2.5.7
