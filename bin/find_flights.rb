@@ -1,5 +1,5 @@
-require_relative 'lib/ib/flight_result'
-require_relative 'lib/flight_searcher'
+require_relative '../lib/flight_result'
+require_relative '../lib/flight_searcher'
 
 begin
   flight_searcher = FlightSearcher.new
