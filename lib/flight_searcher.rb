@@ -47,6 +47,14 @@ class FlightSearcher
         flex: "exact",
       }
     ]
+    if !end_date.nil?
+      legs << {
+        origin: { locationType: "airports", airports: [destination_airport] },
+        destination: { locationType: "airports", airports: [origin_airport] },
+        date: end_date,
+        flex: "exact",
+      }
+    end
     poll_response = poll_until_finished(legs: legs)
     filter_data = poll_response[:filterData]
     sort_map = poll_response[:sortMap]
